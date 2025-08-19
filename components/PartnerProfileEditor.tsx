@@ -19,20 +19,23 @@ const PartnerProfileEditor: React.FC<PartnerProfileEditorProps> = ({ session }) 
 
     const getProfile = useCallback(async () => {
         setLoading(true);
-        const { user } = session;
-        const { data, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', user.id)
-            .single();
-        
-        if (error) {
-            console.error('Error fetching profile:', error);
-            addToast('Erro ao carregar o perfil.', 'error');
-        } else {
+        try {
+            const { user } = session;
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', user.id)
+                .single();
+            
+            if (error) throw error;
+
             setProfile(data);
+        } catch (error: any) {
+            console.error('Error fetching profile:', error.message || error);
+            addToast('Erro ao carregar o perfil.', 'error');
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     }, [session, addToast]);
 
     useEffect(() => {

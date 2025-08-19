@@ -20,17 +20,21 @@ const PartnerListings: React.FC<PartnerListingsProps> = ({ showActionButtons, st
     useEffect(() => {
         const fetchPartners = async () => {
             setLoading(true);
-            const { data, error } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('user_type', 'partner');
+            try {
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('user_type', 'partner');
 
-            if (error) {
-                console.error('Error fetching partners:', error);
-            } else {
+                if (error) {
+                    throw error;
+                }
                 setPartners(data || []);
+            } catch (error: any) {
+                console.error('Error fetching partners:', error.message || error);
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
         };
         fetchPartners();
     }, []);

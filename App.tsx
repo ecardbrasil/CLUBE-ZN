@@ -38,16 +38,19 @@ function App(): React.ReactNode {
   useEffect(() => {
     if (session?.user) {
       const fetchProfile = async () => {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-        
-        if (error) {
-          console.error('Error fetching profile:', error);
-        } else {
+        try {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+          
+          if (error) {
+            throw error;
+          }
           setProfile(data);
+        } catch (error: any) {
+           console.error('Error fetching profile:', error.message || error);
         }
       };
       fetchProfile();

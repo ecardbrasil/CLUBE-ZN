@@ -6,13 +6,13 @@ export type Database = {
     Tables: {
       profiles: {
         Row: Profile;
-        Insert: Partial<Profile>;
-        Update: Partial<Profile>;
+        Insert: Partial<Omit<Profile, 'updated_at'>>;
+        Update: Partial<Omit<Profile, 'id'>>;
       };
       offers: {
         Row: Offer;
         Insert: Omit<Offer, 'id' | 'created_at'>;
-        Update: Partial<Offer>;
+        Update: Partial<Omit<Offer, 'id' | 'created_at' | 'user_id'>>;
       };
     };
     Views: {

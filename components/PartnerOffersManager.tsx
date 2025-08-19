@@ -25,19 +25,22 @@ const PartnerOffersManager: React.FC<PartnerOffersManagerProps> = ({ session }) 
 
     const fetchOffers = useCallback(async () => {
         setLoading(true);
-        const { data, error } = await supabase
-            .from('offers')
-            .select('*')
-            .eq('user_id', session.user.id)
-            .order('created_at', { ascending: false });
-        
-        if (error) {
-            console.error('Error fetching offers:', error);
-            addToast('Erro ao carregar as ofertas.', 'error');
-        } else {
+        try {
+            const { data, error } = await supabase
+                .from('offers')
+                .select('*')
+                .eq('user_id', session.user.id)
+                .order('created_at', { ascending: false });
+            
+            if (error) throw error;
+            
             setOffers(data || []);
+        } catch (error: any) {
+            console.error('Error fetching offers:', error.message || error);
+            addToast('Erro ao carregar as ofertas.', 'error');
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     }, [session.user.id, addToast]);
 
     useEffect(() => {
