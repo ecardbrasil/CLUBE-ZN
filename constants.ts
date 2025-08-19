@@ -1,2 +1,2 @@
 
-import type { Profile, Offer } from './types';
+import type { Profile, Offer } from './lib/supabaseClient';

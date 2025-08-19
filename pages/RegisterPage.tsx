@@ -35,22 +35,25 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onSwitchToLogin, onClose, o
         }
         setLoading(true);
 
-        const { error: signUpError } = await supabase.auth.signUp({
-            email: formData.email,
-            password: formData.password,
-            options: {
-                data: {
-                    user_type: 'customer',
+        try {
+            const { error: signUpError } = await supabase.auth.signUp({
+                email: formData.email,
+                password: formData.password,
+                options: {
+                    data: {
+                        user_type: 'customer',
+                    }
                 }
-            }
-        });
+            });
 
-        setLoading(false);
-        if (signUpError) {
-            addToast(translateSupabaseError(signUpError.message), 'error');
-        } else {
+            if (signUpError) throw signUpError;
+            
             addToast('Cadastro realizado! Verifique seu e-mail para confirmar a conta.', 'success');
             onRegisterSuccess();
+        } catch (error: any) {
+            addToast(translateSupabaseError(error.message), 'error');
+        } finally {
+            setLoading(false);
         }
     };
 

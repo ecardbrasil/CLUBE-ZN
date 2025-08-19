@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import type { Offer } from '../types';
+import type { Offer } from '../lib/supabaseClient';
 import Modal from './Modal';
 import OfferForm from './OfferForm';
 import { PlusIcon } from './icons/PlusIcon';
@@ -21,6 +21,7 @@ const PartnerOffersManager: React.FC<PartnerOffersManagerProps> = ({ session }) 
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingOffer, setEditingOffer] = useState<Offer | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
     const { addToast } = useToast();
 
     const fetchOffers = useCallback(async () => {
@@ -59,30 +60,36 @@ const PartnerOffersManager: React.FC<PartnerOffersManagerProps> = ({ session }) 
     
     const handleDelete = async (id: number) => {
         if(confirm('Tem certeza que deseja excluir esta oferta?')) {
-            const { error } = await supabase.from('offers').delete().eq('id', id);
-            if (error) {
-                addToast(translateSupabaseError(error.message), 'error');
-            } else {
+            try {
+                const { error } = await supabase.from('offers').delete().eq('id', id);
+                if (error) throw error;
                 addToast('Oferta excluída com sucesso!', 'success');
                 fetchOffers();
+            } catch (error: any) {
+                addToast(translateSupabaseError(error.message), 'error');
             }
         }
     };
 
     const handleSaveOffer = async (offerData: Omit<Offer, 'id' | 'user_id' | 'created_at'>) => {
-        let error = null;
-        if (editingOffer) { // Editing offer
-            ({ error } = await supabase.from('offers').update(offerData).eq('id', editingOffer.id));
-        } else { // New offer
-            ({ error } = await supabase.from('offers').insert({ ...offerData, user_id: session.user.id }));
-        }
+        setIsSaving(true);
+        try {
+            let error = null;
+            if (editingOffer) { // Editing offer
+                ({ error } = await supabase.from('offers').update(offerData).eq('id', editingOffer.id));
+            } else { // New offer
+                ({ error } = await supabase.from('offers').insert({ ...offerData, user_id: session.user.id }));
+            }
 
-        if (error) {
-            addToast(translateSupabaseError(error.message), 'error');
-        } else {
+            if (error) throw error;
+
             addToast('Oferta salva com sucesso!', 'success');
             setIsModalOpen(false);
             fetchOffers();
+        } catch (error: any) {
+            addToast(translateSupabaseError(error.message), 'error');
+        } finally {
+            setIsSaving(false);
         }
     };
     
@@ -147,6 +154,7 @@ const PartnerOffersManager: React.FC<PartnerOffersManagerProps> = ({ session }) 
                     offer={editingOffer} 
                     onSave={handleSaveOffer}
                     onClose={() => setIsModalOpen(false)} 
+                    isSaving={isSaving}
                 />
             </Modal>
         </div>

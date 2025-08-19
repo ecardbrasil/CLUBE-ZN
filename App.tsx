@@ -11,7 +11,7 @@ import RegisterPartnerPage from './pages/RegisterPartnerPage';
 import PartnerDashboardPage from './pages/PartnerDashboardPage';
 import { supabase } from './lib/supabaseClient';
 import type { AuthSession } from '@supabase/supabase-js';
-import type { Profile } from './types';
+import type { Profile } from './lib/supabaseClient';
 import { ToastProvider } from './contexts/ToastContext';
 
 function App(): React.ReactNode {

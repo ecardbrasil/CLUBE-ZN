@@ -1,11 +1,19 @@
 import { createClient } from '@supabase/supabase-js';
-import type { Profile, Offer } from '../types';
 
 export type Database = {
   public: {
     Tables: {
       profiles: {
-        Row: Profile;
+        Row: {
+          id: string; // uuid
+          updated_at?: string;
+          company_name: string | null;
+          description: string | null;
+          logo_url: string | null;
+          category: string | null;
+          benefit: string | null;
+          user_type: 'customer' | 'partner' | null;
+        };
         Insert: {
           id: string;
           company_name?: string | null;
@@ -25,7 +33,16 @@ export type Database = {
         };
       };
       offers: {
-        Row: Offer;
+        Row: {
+          id: number;
+          user_id: string;
+          created_at?: string;
+          title: string;
+          description: string | null;
+          discount_type: 'percentage' | 'fixed' | 'custom';
+          discount_value: number | null;
+          custom_discount_text: string | null;
+        };
         Insert: {
           user_id: string;
           title: string;
@@ -51,6 +68,10 @@ export type Database = {
     };
   };
 };
+
+export type Profile = Database['public']['Tables']['profiles']['Row'];
+export type Offer = Database['public']['Tables']['offers']['Row'];
+
 
 const supabaseUrl = 'https://wcjqkjloofrjdyzamkxn.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndjanFramxvb2ZyamR5emFta3huIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU2MjI4NDksImV4cCI6MjA3MTE5ODg0OX0.poHKJOj1VlomnoyJ1GWCweoIhuXk3ZH6Di-awC-DDX0';

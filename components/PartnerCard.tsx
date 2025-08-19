@@ -1,6 +1,6 @@
 
 import React from 'react';
-import type { Profile } from '../types';
+import type { Profile } from '../lib/supabaseClient';
 import { SparklesIcon } from './icons/SparklesIcon';
 import { TicketIcon } from './icons/TicketIcon';
 

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import type { Offer } from '../types';
+import type { Offer } from '../lib/supabaseClient';
 import { TagIcon } from './icons/TagIcon';
 
 type OfferFormData = Omit<Offer, 'id' | 'user_id' | 'created_at'>;
@@ -9,9 +9,10 @@ interface OfferFormProps {
     offer: Offer | null;
     onSave: (offer: OfferFormData) => void;
     onClose: () => void;
+    isSaving: boolean;
 }
 
-const OfferForm: React.FC<OfferFormProps> = ({ offer, onSave, onClose }) => {
+const OfferForm: React.FC<OfferFormProps> = ({ offer, onSave, onClose, isSaving }) => {
     const [formData, setFormData] = useState<OfferFormData>({
         title: '',
         description: '',
@@ -63,7 +64,7 @@ const OfferForm: React.FC<OfferFormProps> = ({ offer, onSave, onClose }) => {
         onSave(formData);
     };
     
-    const inputClasses = "w-full px-4 py-3 bg-background border border-border rounded-xl text-text-primary focus:outline-none focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all duration-300 placeholder:text-text-secondary";
+    const inputClasses = "w-full px-4 py-3 bg-background border border-border rounded-xl text-text-primary focus:outline-none focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all duration-300 placeholder:text-text-secondary disabled:opacity-50 disabled:bg-gray-100";
 
     return (
         <div className="w-full max-w-lg p-8 md:p-10 space-y-6 bg-surface rounded-3xl max-h-[90vh] overflow-y-auto">
@@ -77,13 +78,13 @@ const OfferForm: React.FC<OfferFormProps> = ({ offer, onSave, onClose }) => {
                 </p>
             </div>
             <form onSubmit={handleSubmit} className="space-y-5">
-                <input name="title" type="text" required placeholder="Título da Oferta (ex: Corte de Cabelo)" className={inputClasses} value={formData.title} onChange={handleInputChange} />
-                <textarea name="description" rows={3} placeholder="Descrição curta da oferta..." className={`${inputClasses} resize-y`} value={formData.description || ''} onChange={handleInputChange} />
+                <input name="title" type="text" required placeholder="Título da Oferta (ex: Corte de Cabelo)" className={inputClasses} value={formData.title} onChange={handleInputChange} disabled={isSaving} />
+                <textarea name="description" rows={3} placeholder="Descrição curta da oferta..." className={`${inputClasses} resize-y`} value={formData.description || ''} onChange={handleInputChange} disabled={isSaving} />
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-sm font-medium text-text-secondary mb-2">Tipo de Desconto</label>
-                        <select name="discount_type" value={formData.discount_type} onChange={handleInputChange} className={inputClasses}>
+                        <select name="discount_type" value={formData.discount_type} onChange={handleInputChange} className={inputClasses} disabled={isSaving}>
                             <option value="percentage">Percentual (%)</option>
                             <option value="fixed">Valor Fixo (R$)</option>
                             <option value="custom">Customizado</option>
@@ -93,29 +94,29 @@ const OfferForm: React.FC<OfferFormProps> = ({ offer, onSave, onClose }) => {
                          {formData.discount_type === 'percentage' && (
                              <>
                                 <label className="block text-sm font-medium text-text-secondary mb-2">Valor do Desconto (%)</label>
-                                <input name="discount_value" type="number" placeholder="Ex: 15" className={inputClasses} value={formData.discount_value ?? ''} onChange={handleInputChange} />
+                                <input name="discount_value" type="number" placeholder="Ex: 15" className={inputClasses} value={formData.discount_value ?? ''} onChange={handleInputChange} disabled={isSaving} />
                              </>
                          )}
                          {formData.discount_type === 'fixed' && (
                              <>
                                 <label className="block text-sm font-medium text-text-secondary mb-2">Valor do Desconto (R$)</label>
-                                <input name="discount_value" type="number" placeholder="Ex: 10" className={inputClasses} value={formData.discount_value ?? ''} onChange={handleInputChange} />
+                                <input name="discount_value" type="number" placeholder="Ex: 10" className={inputClasses} value={formData.discount_value ?? ''} onChange={handleInputChange} disabled={isSaving} />
                              </>
                          )}
                          {formData.discount_type === 'custom' && (
                              <>
                                 <label className="block text-sm font-medium text-text-secondary mb-2">Texto da Oferta</label>
-                                <input name="custom_discount_text" type="text" placeholder="Ex: Leve 2 Pague 1" className={inputClasses} value={formData.custom_discount_text || ''} onChange={handleInputChange} />
+                                <input name="custom_discount_text" type="text" placeholder="Ex: Leve 2 Pague 1" className={inputClasses} value={formData.custom_discount_text || ''} onChange={handleInputChange} disabled={isSaving} />
                              </>
                          )}
                     </div>
                 </div>
 
                 <div className="pt-2 space-y-3">
-                     <button type="submit" className="w-full flex justify-center py-3 px-4 text-lg font-bold rounded-xl text-white bg-primary hover:opacity-90 transition-opacity duration-300">
-                        Salvar Oferta
+                     <button type="submit" className="w-full flex justify-center py-3 px-4 text-lg font-bold rounded-xl text-white bg-primary hover:opacity-90 transition-opacity duration-300 disabled:opacity-50" disabled={isSaving}>
+                        {isSaving ? 'Salvando...' : 'Salvar Oferta'}
                     </button>
-                    <button type="button" onClick={onClose} className="w-full flex justify-center py-3 px-4 text-md font-bold rounded-xl text-text-secondary bg-surface hover:bg-gray-100 transition-colors duration-300">
+                    <button type="button" onClick={onClose} className="w-full flex justify-center py-3 px-4 text-md font-bold rounded-xl text-text-secondary bg-surface hover:bg-gray-100 transition-colors duration-300" disabled={isSaving}>
                         Cancelar
                     </button>
                 </div>

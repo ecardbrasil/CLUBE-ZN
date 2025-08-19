@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import type { Profile } from '../types';
+import type { Profile } from '../lib/supabaseClient';
 import { UploadIcon } from './icons/UploadIcon';
 import { supabase } from '../lib/supabaseClient';
 import type { AuthSession } from '@supabase/supabase-js';
@@ -15,6 +15,7 @@ const PartnerProfileEditor: React.FC<PartnerProfileEditorProps> = ({ session }) 
     const [profile, setProfile] = useState<Partial<Profile> | null>(null);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const { addToast } = useToast();
 
     const getProfile = useCallback(async () => {
@@ -86,18 +87,22 @@ const PartnerProfileEditor: React.FC<PartnerProfileEditorProps> = ({ session }) 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!profile) return;
-        
-        const { error } = await supabase.from('profiles').update({
-            company_name: profile.company_name,
-            description: profile.description,
-            category: profile.category,
-            benefit: profile.benefit,
-        }).eq('id', session.user.id);
+        setIsSubmitting(true);
+        try {
+            const { error } = await supabase.from('profiles').update({
+                company_name: profile.company_name,
+                description: profile.description,
+                category: profile.category,
+                benefit: profile.benefit,
+            }).eq('id', session.user.id);
 
-        if (error) {
-            addToast(translateSupabaseError(error.message), 'error');
-        } else {
+            if (error) throw error;
+
             addToast('Perfil salvo com sucesso!', 'success');
+        } catch (error: any) {
+             addToast(translateSupabaseError(error.message), 'error');
+        } finally {
+            setIsSubmitting(false);
         }
     };
     
@@ -147,9 +152,10 @@ const PartnerProfileEditor: React.FC<PartnerProfileEditorProps> = ({ session }) 
                 <div>
                     <button
                         type="submit"
-                        className="w-full flex justify-center py-3 px-4 border border-transparent text-lg font-bold rounded-xl text-white bg-primary hover:opacity-90 transition-opacity duration-300"
+                        disabled={isSubmitting}
+                        className="w-full flex justify-center py-3 px-4 border border-transparent text-lg font-bold rounded-xl text-white bg-primary hover:opacity-90 transition-opacity duration-300 disabled:opacity-50"
                     >
-                        Salvar Alterações
+                        {isSubmitting ? 'Salvando...' : 'Salvar Alterações'}
                     </button>
                 </div>
             </form>

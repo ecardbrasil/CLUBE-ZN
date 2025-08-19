@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
-import type { Profile } from '../types';
+import type { Profile } from '../lib/supabaseClient';
 import PartnerCard from './PartnerCard';
 import { SearchIcon } from './icons/SearchIcon';
 import { supabase } from '../lib/supabaseClient';

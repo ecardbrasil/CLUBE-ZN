@@ -30,18 +30,20 @@ const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToRegister, onClose, onLo
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setLoading(true);
-        
-        const { error } = await supabase.auth.signInWithPassword({
-            email: formData.email,
-            password: formData.password,
-        });
+        try {
+            const { error } = await supabase.auth.signInWithPassword({
+                email: formData.email,
+                password: formData.password,
+            });
 
-        setLoading(false);
-        if (error) {
-            addToast(translateSupabaseError(error.message), 'error');
-        } else {
+            if (error) throw error;
+
             addToast('Login realizado com sucesso!', 'success');
             onLoginSuccess();
+        } catch (error: any) {
+            addToast(translateSupabaseError(error.message), 'error');
+        } finally {
+            setLoading(false);
         }
     };
 

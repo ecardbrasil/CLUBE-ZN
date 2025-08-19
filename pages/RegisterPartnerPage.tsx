@@ -35,23 +35,26 @@ const RegisterPartnerPage: React.FC<RegisterPartnerPageProps> = ({ onClose, onRe
         }
         setLoading(true);
         
-        const { error: signUpError } = await supabase.auth.signUp({
-            email: formData.email,
-            password: formData.password,
-            options: {
-                data: {
-                    user_type: 'partner',
-                    company_name: formData.companyName,
+        try {
+            const { error: signUpError } = await supabase.auth.signUp({
+                email: formData.email,
+                password: formData.password,
+                options: {
+                    data: {
+                        user_type: 'partner',
+                        company_name: formData.companyName,
+                    }
                 }
-            }
-        });
+            });
 
-        setLoading(false);
-        if (signUpError) {
-             addToast(translateSupabaseError(signUpError.message), 'error');
-        } else {
+            if (signUpError) throw signUpError;
+
             addToast('Cadastro de parceiro realizado! Verifique seu e-mail para confirmar a conta.', 'success');
             onRegisterSuccess();
+        } catch (error: any) {
+            addToast(translateSupabaseError(error.message), 'error');
+        } finally {
+            setLoading(false);
         }
     };
 
