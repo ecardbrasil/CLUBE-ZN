@@ -4,6 +4,8 @@ import type { Profile } from '../types';
 import { UploadIcon } from './icons/UploadIcon';
 import { supabase } from '../lib/supabaseClient';
 import type { AuthSession } from '@supabase/supabase-js';
+import { useToast } from '../contexts/ToastContext';
+import { translateSupabaseError } from '../lib/errorUtils';
 
 interface PartnerProfileEditorProps {
     session: AuthSession;
@@ -13,6 +15,7 @@ const PartnerProfileEditor: React.FC<PartnerProfileEditorProps> = ({ session }) 
     const [profile, setProfile] = useState<Partial<Profile> | null>(null);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
+    const { addToast } = useToast();
 
     const getProfile = useCallback(async () => {
         setLoading(true);
@@ -25,11 +28,12 @@ const PartnerProfileEditor: React.FC<PartnerProfileEditorProps> = ({ session }) 
         
         if (error) {
             console.error('Error fetching profile:', error);
+            addToast('Erro ao carregar o perfil.', 'error');
         } else {
             setProfile(data);
         }
         setLoading(false);
-    }, [session]);
+    }, [session, addToast]);
 
     useEffect(() => {
         getProfile();
@@ -38,7 +42,7 @@ const PartnerProfileEditor: React.FC<PartnerProfileEditorProps> = ({ session }) 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         if (profile) {
-            setProfile(prev => ({ ...prev, [name]: value }));
+            setProfile(prev => ({ ...(prev ?? {}), [name]: value } as Partial<Profile>));
         }
     };
 
@@ -46,12 +50,12 @@ const PartnerProfileEditor: React.FC<PartnerProfileEditorProps> = ({ session }) 
         try {
             setUploading(true);
             if (!e.target.files || e.target.files.length === 0) {
-                throw new Error('You must select an image to upload.');
+                throw new Error('Você deve selecionar uma imagem para enviar.');
             }
 
             const file = e.target.files[0];
             const fileExt = file.name.split('.').pop();
-            const fileName = `${session.user.id}.${fileExt}`;
+            const fileName = `${session.user.id}-${new Date().getTime()}.${fileExt}`;
             const filePath = `${fileName}`;
 
             const { error: uploadError } = await supabase.storage
@@ -61,14 +65,16 @@ const PartnerProfileEditor: React.FC<PartnerProfileEditorProps> = ({ session }) 
             if (uploadError) throw uploadError;
 
             const { data } = supabase.storage.from('logos').getPublicUrl(filePath);
+            const publicUrl = data.publicUrl;
 
             if (profile) {
-                 setProfile(prev => ({ ...prev, logo_url: data.publicUrl }));
-                 await supabase.from('profiles').update({ logo_url: data.publicUrl }).eq('id', session.user.id);
+                 setProfile(prev => ({ ...(prev ?? {}), logo_url: publicUrl } as Partial<Profile>));
+                 const { error: updateError } = await supabase.from('profiles').update({ logo_url: publicUrl }).eq('id', session.user.id);
+                 if (updateError) throw updateError;
             }
-            alert('Logo atualizada com sucesso!');
+            addToast('Logo atualizada com sucesso!', 'success');
         } catch (error: any) {
-            alert(error.message);
+            addToast(translateSupabaseError(error.message), 'error');
         } finally {
             setUploading(false);
         }
@@ -86,9 +92,9 @@ const PartnerProfileEditor: React.FC<PartnerProfileEditorProps> = ({ session }) 
         }).eq('id', session.user.id);
 
         if (error) {
-            alert(error.message);
+            addToast(translateSupabaseError(error.message), 'error');
         } else {
-            alert('Perfil salvo com sucesso!');
+            addToast('Perfil salvo com sucesso!', 'success');
         }
     };
     

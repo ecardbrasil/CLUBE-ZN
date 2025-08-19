@@ -9,6 +9,8 @@ import { TrashIcon } from './icons/TrashIcon';
 import { TagIcon } from './icons/TagIcon';
 import { supabase } from '../lib/supabaseClient';
 import type { AuthSession } from '@supabase/supabase-js';
+import { useToast } from '../contexts/ToastContext';
+import { translateSupabaseError } from '../lib/errorUtils';
 
 interface PartnerOffersManagerProps {
     session: AuthSession;
@@ -19,6 +21,7 @@ const PartnerOffersManager: React.FC<PartnerOffersManagerProps> = ({ session }) 
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingOffer, setEditingOffer] = useState<Offer | null>(null);
+    const { addToast } = useToast();
 
     const fetchOffers = useCallback(async () => {
         setLoading(true);
@@ -30,11 +33,12 @@ const PartnerOffersManager: React.FC<PartnerOffersManagerProps> = ({ session }) 
         
         if (error) {
             console.error('Error fetching offers:', error);
+            addToast('Erro ao carregar as ofertas.', 'error');
         } else {
             setOffers(data || []);
         }
         setLoading(false);
-    }, [session.user.id]);
+    }, [session.user.id, addToast]);
 
     useEffect(() => {
         fetchOffers();
@@ -54,23 +58,29 @@ const PartnerOffersManager: React.FC<PartnerOffersManagerProps> = ({ session }) 
         if(confirm('Tem certeza que deseja excluir esta oferta?')) {
             const { error } = await supabase.from('offers').delete().eq('id', id);
             if (error) {
-                alert(error.message);
+                addToast(translateSupabaseError(error.message), 'error');
             } else {
+                addToast('Oferta excluída com sucesso!', 'success');
                 fetchOffers();
             }
         }
     };
 
     const handleSaveOffer = async (offerData: Omit<Offer, 'id' | 'user_id' | 'created_at'>) => {
+        let error = null;
         if (editingOffer) { // Editing offer
-            const { error } = await supabase.from('offers').update(offerData).eq('id', editingOffer.id);
-            if (error) alert(error.message);
+            ({ error } = await supabase.from('offers').update(offerData).eq('id', editingOffer.id));
         } else { // New offer
-            const { error } = await supabase.from('offers').insert({ ...offerData, user_id: session.user.id });
-            if (error) alert(error.message);
+            ({ error } = await supabase.from('offers').insert({ ...offerData, user_id: session.user.id }));
         }
-        setIsModalOpen(false);
-        fetchOffers();
+
+        if (error) {
+            addToast(translateSupabaseError(error.message), 'error');
+        } else {
+            addToast('Oferta salva com sucesso!', 'success');
+            setIsModalOpen(false);
+            fetchOffers();
+        }
     };
     
     const getDiscountText = (offer: Offer) => {

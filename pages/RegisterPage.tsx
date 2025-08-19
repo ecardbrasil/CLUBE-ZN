@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { MapPinIcon } from '../components/icons/MapPinIcon';
 import { supabase } from '../lib/supabaseClient';
+import { useToast } from '../contexts/ToastContext';
+import { translateSupabaseError } from '../lib/errorUtils';
 
 interface RegisterPageProps {
   onSwitchToLogin: () => void;
@@ -17,6 +19,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onSwitchToLogin, onClose, o
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const { addToast } = useToast();
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -25,14 +28,14 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onSwitchToLogin, onClose, o
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        setError(null);
         if (formData.password !== formData.passwordConfirm) {
             setError('As senhas não conferem.');
             return;
         }
         setLoading(true);
-        setError(null);
 
-        const { error } = await supabase.auth.signUp({
+        const { error: signUpError } = await supabase.auth.signUp({
             email: formData.email,
             password: formData.password,
             options: {
@@ -43,10 +46,10 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onSwitchToLogin, onClose, o
         });
 
         setLoading(false);
-        if (error) {
-            setError(error.message);
+        if (signUpError) {
+            addToast(translateSupabaseError(signUpError.message), 'error');
         } else {
-            alert('Cadastro realizado! Verifique seu e-mail para confirmar a conta.');
+            addToast('Cadastro realizado! Verifique seu e-mail para confirmar a conta.', 'success');
             onRegisterSuccess();
         }
     };
@@ -76,7 +79,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onSwitchToLogin, onClose, o
                 {error && <p className="text-red-500 text-sm text-center bg-red-100 p-3 rounded-xl">{error}</p>}
                 <div className="space-y-4">
                     <input name="email" type="email" required placeholder="E-mail" className={inputClasses} value={formData.email} onChange={handleInputChange} disabled={loading} />
-                    <input name="password" type="password" required placeholder="Senha" className={inputClasses} value={formData.password} onChange={handleInputChange} disabled={loading} />
+                    <input name="password" type="password" required placeholder="Senha" minLength={6} className={inputClasses} value={formData.password} onChange={handleInputChange} disabled={loading} />
                     <input name="passwordConfirm" type="password" required placeholder="Confirme sua Senha" className={inputClasses} value={formData.passwordConfirm} onChange={handleInputChange} disabled={loading} />
                 </div>
                 <div>

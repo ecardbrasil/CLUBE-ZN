@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { MapPinIcon } from '../components/icons/MapPinIcon';
 import { supabase } from '../lib/supabaseClient';
+import { useToast } from '../contexts/ToastContext';
+import { translateSupabaseError } from '../lib/errorUtils';
 
 interface RegisterPartnerPageProps {
   onClose: () => void;
@@ -17,6 +19,7 @@ const RegisterPartnerPage: React.FC<RegisterPartnerPageProps> = ({ onClose, onRe
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const { addToast } = useToast();
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -25,14 +28,14 @@ const RegisterPartnerPage: React.FC<RegisterPartnerPageProps> = ({ onClose, onRe
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        setError(null);
         if (formData.password !== formData.passwordConfirm) {
             setError('As senhas não conferem.');
             return;
         }
         setLoading(true);
-        setError(null);
         
-        const { error } = await supabase.auth.signUp({
+        const { error: signUpError } = await supabase.auth.signUp({
             email: formData.email,
             password: formData.password,
             options: {
@@ -44,10 +47,10 @@ const RegisterPartnerPage: React.FC<RegisterPartnerPageProps> = ({ onClose, onRe
         });
 
         setLoading(false);
-        if (error) {
-            setError(error.message);
+        if (signUpError) {
+             addToast(translateSupabaseError(signUpError.message), 'error');
         } else {
-            alert('Cadastro de parceiro realizado! Verifique seu e-mail para confirmar a conta.');
+            addToast('Cadastro de parceiro realizado! Verifique seu e-mail para confirmar a conta.', 'success');
             onRegisterSuccess();
         }
     };
@@ -76,7 +79,7 @@ const RegisterPartnerPage: React.FC<RegisterPartnerPageProps> = ({ onClose, onRe
                     <input name="companyName" type="text" required placeholder="Nome Fantasia" className={inputClasses} value={formData.companyName} onChange={handleInputChange} disabled={loading} />
                     <input name="email" type="email" required placeholder="E-mail de Acesso" className={inputClasses} value={formData.email} onChange={handleInputChange} disabled={loading} />
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input name="password" type="password" required placeholder="Crie uma senha" className={inputClasses} value={formData.password} onChange={handleInputChange} disabled={loading} />
+                        <input name="password" type="password" required placeholder="Crie uma senha" minLength={6} className={inputClasses} value={formData.password} onChange={handleInputChange} disabled={loading} />
                         <input name="passwordConfirm" type="password" required placeholder="Confirme a senha" className={inputClasses} value={formData.passwordConfirm} onChange={handleInputChange} disabled={loading} />
                     </div>
                 </div>

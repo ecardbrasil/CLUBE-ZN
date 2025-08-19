@@ -2,10 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Header from './components/Header';
 import Footer from './components/Footer';
-import Hero from './components/Hero';
-import PartnersSection from './components/PartnersSection';
-import AboutSection from './components/AboutSection';
-import CTASection from './components/CTASection';
+import HomePage from './components/HomePage';
 import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
@@ -15,6 +12,7 @@ import PartnerDashboardPage from './pages/PartnerDashboardPage';
 import { supabase } from './lib/supabaseClient';
 import type { AuthSession } from '@supabase/supabase-js';
 import type { Profile } from './types';
+import { ToastProvider } from './contexts/ToastContext';
 
 function App(): React.ReactNode {
   const [modal, setModal] = useState<'none' | 'login' | 'register' | 'register-partner'>('none');
@@ -113,53 +111,48 @@ function App(): React.ReactNode {
       return <DashboardPage />;
     }
 
-    return (
-      <>
-        <Hero />
-        <PartnersSection />
-        <AboutSection />
-        <CTASection />
-      </>
-    );
+    return <HomePage />;
   };
 
   return (
-    <div className="bg-background text-text-primary min-h-screen font-sans antialiased flex flex-col">
-      <Header 
-        isLoggedIn={!!session}
-        onLoginClick={handleOpenLogin} 
-        onRegisterClick={handleOpenRegister}
-        onRegisterPartnerClick={handleOpenRegisterPartner}
-        onLogoutClick={handleLogout}
-      />
-      <main className="flex-grow">
-        {renderPage()}
-      </main>
-      <Footer />
-
-      <Modal isOpen={modal === 'login'} onClose={handleCloseModal}>
-        <LoginPage 
-          onSwitchToRegister={handleSwitchToRegister} 
-          onClose={handleCloseModal}
-          onLoginSuccess={handleCloseModal}
+    <ToastProvider>
+      <div className="bg-background text-text-primary min-h-screen font-sans antialiased flex flex-col">
+        <Header 
+          isLoggedIn={!!session}
+          onLoginClick={handleOpenLogin} 
+          onRegisterClick={handleOpenRegister}
+          onRegisterPartnerClick={handleOpenRegisterPartner}
+          onLogoutClick={handleLogout}
         />
-      </Modal>
+        <main className="flex-grow">
+          {renderPage()}
+        </main>
+        <Footer />
 
-      <Modal isOpen={modal === 'register'} onClose={handleCloseModal}>
-        <RegisterPage 
-          onSwitchToLogin={handleSwitchToLogin} 
-          onClose={handleCloseModal}
-          onRegisterSuccess={handleCloseModal}
-        />
-      </Modal>
+        <Modal isOpen={modal === 'login'} onClose={handleCloseModal}>
+          <LoginPage 
+            onSwitchToRegister={handleSwitchToRegister} 
+            onClose={handleCloseModal}
+            onLoginSuccess={handleCloseModal}
+          />
+        </Modal>
 
-      <Modal isOpen={modal === 'register-partner'} onClose={handleCloseModal}>
-        <RegisterPartnerPage 
-          onClose={handleCloseModal}
-          onRegisterSuccess={handleCloseModal}
-        />
-      </Modal>
-    </div>
+        <Modal isOpen={modal === 'register'} onClose={handleCloseModal}>
+          <RegisterPage 
+            onSwitchToLogin={handleSwitchToLogin} 
+            onClose={handleCloseModal}
+            onRegisterSuccess={handleCloseModal}
+          />
+        </Modal>
+
+        <Modal isOpen={modal === 'register-partner'} onClose={handleCloseModal}>
+          <RegisterPartnerPage 
+            onClose={handleCloseModal}
+            onRegisterSuccess={handleCloseModal}
+          />
+        </Modal>
+      </div>
+    </ToastProvider>
   );
 }
 

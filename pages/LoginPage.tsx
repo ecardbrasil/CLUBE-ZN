@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { MapPinIcon } from '../components/icons/MapPinIcon';
 import { supabase } from '../lib/supabaseClient';
+import { useToast } from '../contexts/ToastContext';
+import { translateSupabaseError } from '../lib/errorUtils';
 
 interface LoginPageProps {
   onSwitchToRegister: () => void;
@@ -15,7 +17,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToRegister, onClose, onLo
         password: '',
     });
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const { addToast } = useToast();
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -28,7 +30,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToRegister, onClose, onLo
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setLoading(true);
-        setError(null);
         
         const { error } = await supabase.auth.signInWithPassword({
             email: formData.email,
@@ -37,8 +38,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToRegister, onClose, onLo
 
         setLoading(false);
         if (error) {
-            setError(error.message);
+            addToast(translateSupabaseError(error.message), 'error');
         } else {
+            addToast('Login realizado com sucesso!', 'success');
             onLoginSuccess();
         }
     };
@@ -65,7 +67,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToRegister, onClose, onLo
                 </p>
             </div>
             <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-                {error && <p className="text-red-500 text-sm text-center bg-red-100 p-3 rounded-xl">{error}</p>}
                 <div className="space-y-4">
                     <input name="email" type="email" required placeholder="E-mail" className={inputClasses} value={formData.email} onChange={handleInputChange} disabled={loading} />
                     <input name="password" type="password" required placeholder="Senha" className={inputClasses} value={formData.password} onChange={handleInputChange} disabled={loading} />
