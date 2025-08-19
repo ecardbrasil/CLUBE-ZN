@@ -6,13 +6,41 @@ export type Database = {
     Tables: {
       profiles: {
         Row: Profile;
-        Insert: Partial<Omit<Profile, 'updated_at'>>;
-        Update: Partial<Omit<Profile, 'id'>>;
+        Insert: {
+          id: string;
+          company_name?: string | null;
+          description?: string | null;
+          logo_url?: string | null;
+          category?: string | null;
+          benefit?: string | null;
+          user_type?: 'customer' | 'partner' | null;
+        };
+        Update: {
+          company_name?: string | null;
+          description?: string | null;
+          logo_url?: string | null;
+          category?: string | null;
+          benefit?: string | null;
+          user_type?: 'customer' | 'partner' | null;
+        };
       };
       offers: {
         Row: Offer;
-        Insert: Omit<Offer, 'id' | 'created_at'>;
-        Update: Partial<Omit<Offer, 'id' | 'created_at' | 'user_id'>>;
+        Insert: {
+          user_id: string;
+          title: string;
+          description?: string | null;
+          discount_type: 'percentage' | 'fixed' | 'custom';
+          discount_value?: number | null;
+          custom_discount_text?: string | null;
+        };
+        Update: {
+          title?: string;
+          description?: string | null;
+          discount_type?: 'percentage' | 'fixed' | 'custom';
+          discount_value?: number | null;
+          custom_discount_text?: string | null;
+        };
       };
     };
     Views: {
@@ -24,7 +52,7 @@ export type Database = {
   };
 };
 
-const supabaseUrl = 'https://wjcjpqloofzrdyzamkxn.supabase.co';
+const supabaseUrl = 'https://wcjqkjloofrjdyzamkxn.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndjanFramxvb2ZyamR5emFta3huIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU2MjI4NDksImV4cCI6MjA3MTE5ODg0OX0.poHKJOj1VlomnoyJ1GWCweoIhuXk3ZH6Di-awC-DDX0';
 
 if (!supabaseUrl || !supabaseKey) {
