@@ -1,25 +1,45 @@
 
-import React, { useState, useMemo } from 'react';
-import { PARTNERS } from '../constants';
-import type { Partner } from '../types';
+import React, { useState, useMemo, useEffect } from 'react';
+import type { Profile } from '../types';
 import PartnerCard from './PartnerCard';
 import { SearchIcon } from './icons/SearchIcon';
+import { supabase } from '../lib/supabaseClient';
 
 const PartnersSection: React.FC = () => {
+  const [partners, setPartners] = useState<Profile[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Todos');
 
-  const categories = useMemo(() => ['Todos', ...new Set(PARTNERS.map((p) => p.category))], []);
+  useEffect(() => {
+    const fetchPartners = async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_type', 'partner');
+      
+      if (error) {
+        console.error('Error fetching partners:', error);
+      } else {
+        setPartners(data || []);
+      }
+      setLoading(false);
+    };
+    fetchPartners();
+  }, []);
+
+  const categories = useMemo(() => ['Todos', ...new Set(partners.map((p) => p.category).filter(Boolean) as string[])], [partners]);
 
   const filteredPartners = useMemo(() => {
-    return PARTNERS.filter((partner) => {
+    return partners.filter((partner) => {
       const matchesCategory = selectedCategory === 'Todos' || partner.category === selectedCategory;
       const matchesSearch =
-        partner.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        partner.category.toLowerCase().includes(searchTerm.toLowerCase());
+        partner.company_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        partner.category?.toLowerCase().includes(searchTerm.toLowerCase());
       return matchesCategory && matchesSearch;
     });
-  }, [searchTerm, selectedCategory]);
+  }, [searchTerm, selectedCategory, partners]);
 
   return (
     <section id="parceiros" className="py-16 bg-background sm:py-24">
@@ -64,9 +84,11 @@ const PartnersSection: React.FC = () => {
             </div>
         </div>
 
-        {filteredPartners.length > 0 ? (
+        {loading ? (
+            <div className="text-center py-16"><p className="text-xl text-text-secondary">Carregando parceiros...</p></div>
+        ) : filteredPartners.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                {filteredPartners.map((partner: Partner) => (
+                {filteredPartners.map((partner: Profile) => (
                     <PartnerCard key={partner.id} partner={partner} />
                 ))}
             </div>

@@ -1,6 +1,5 @@
 
-import React, { useState } from 'react';
-import { MOCK_OFFERS } from '../constants';
+import React, { useState, useEffect, useCallback } from 'react';
 import type { Offer } from '../types';
 import Modal from './Modal';
 import OfferForm from './OfferForm';
@@ -8,11 +7,38 @@ import { PlusIcon } from './icons/PlusIcon';
 import { EditIcon } from './icons/EditIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { TagIcon } from './icons/TagIcon';
+import { supabase } from '../lib/supabaseClient';
+import type { AuthSession } from '@supabase/supabase-js';
 
-const PartnerOffersManager: React.FC = () => {
-    const [offers, setOffers] = useState<Offer[]>(MOCK_OFFERS);
+interface PartnerOffersManagerProps {
+    session: AuthSession;
+}
+
+const PartnerOffersManager: React.FC<PartnerOffersManagerProps> = ({ session }) => {
+    const [offers, setOffers] = useState<Offer[]>([]);
+    const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingOffer, setEditingOffer] = useState<Offer | null>(null);
+
+    const fetchOffers = useCallback(async () => {
+        setLoading(true);
+        const { data, error } = await supabase
+            .from('offers')
+            .select('*')
+            .eq('user_id', session.user.id)
+            .order('created_at', { ascending: false });
+        
+        if (error) {
+            console.error('Error fetching offers:', error);
+        } else {
+            setOffers(data || []);
+        }
+        setLoading(false);
+    }, [session.user.id]);
+
+    useEffect(() => {
+        fetchOffers();
+    }, [fetchOffers]);
 
     const handleAddNew = () => {
         setEditingOffer(null);
@@ -24,32 +50,44 @@ const PartnerOffersManager: React.FC = () => {
         setIsModalOpen(true);
     };
     
-    const handleDelete = (id: number) => {
+    const handleDelete = async (id: number) => {
         if(confirm('Tem certeza que deseja excluir esta oferta?')) {
-            setOffers(offers.filter(o => o.id !== id));
+            const { error } = await supabase.from('offers').delete().eq('id', id);
+            if (error) {
+                alert(error.message);
+            } else {
+                fetchOffers();
+            }
         }
     };
 
-    const handleSaveOffer = (offer: Offer) => {
-        if (offer.id === 0) { // New offer
-            setOffers([...offers, { ...offer, id: Date.now() }]);
-        } else { // Editing offer
-            setOffers(offers.map(o => o.id === offer.id ? offer : o));
+    const handleSaveOffer = async (offerData: Omit<Offer, 'id' | 'user_id' | 'created_at'>) => {
+        if (editingOffer) { // Editing offer
+            const { error } = await supabase.from('offers').update(offerData).eq('id', editingOffer.id);
+            if (error) alert(error.message);
+        } else { // New offer
+            const { error } = await supabase.from('offers').insert({ ...offerData, user_id: session.user.id });
+            if (error) alert(error.message);
         }
         setIsModalOpen(false);
+        fetchOffers();
     };
     
     const getDiscountText = (offer: Offer) => {
-        switch (offer.discountType) {
+        switch (offer.discount_type) {
             case 'percentage':
-                return `${offer.discountValue}% OFF`;
+                return `${offer.discount_value}% OFF`;
             case 'fixed':
-                return `R$ ${offer.discountValue},00 OFF`;
+                return `R$ ${offer.discount_value},00 OFF`;
             case 'custom':
-                return offer.customDiscountText;
+                return offer.custom_discount_text;
             default:
                 return '';
         }
+    }
+    
+    if (loading) {
+      return <p>Carregando ofertas...</p>
     }
 
     return (

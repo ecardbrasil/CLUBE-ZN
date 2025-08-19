@@ -1,11 +1,12 @@
 
 import React, { useState } from 'react';
 import { MapPinIcon } from '../components/icons/MapPinIcon';
+import { supabase } from '../lib/supabaseClient';
 
 interface LoginPageProps {
   onSwitchToRegister: () => void;
   onClose: () => void;
-  onLoginSuccess: (userType: 'customer' | 'partner') => void;
+  onLoginSuccess: () => void;
 }
 
 const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToRegister, onClose, onLoginSuccess }) => {
@@ -13,6 +14,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToRegister, onClose, onLo
         email: '',
         password: '',
     });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -22,14 +25,22 @@ const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToRegister, onClose, onLo
         }));
     };
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        // Simulação: se o email contiver @partner.com, é um parceiro
-        const userType = formData.email.includes('@partner.com') ? 'partner' : 'customer';
+        setLoading(true);
+        setError(null);
         
-        console.log('Login data submitted:', formData);
-        alert('Login realizado com sucesso! (Simulação)');
-        onLoginSuccess(userType); // Navega para o dashboard correspondente
+        const { error } = await supabase.auth.signInWithPassword({
+            email: formData.email,
+            password: formData.password,
+        });
+
+        setLoading(false);
+        if (error) {
+            setError(error.message);
+        } else {
+            onLoginSuccess();
+        }
     };
 
     const inputClasses = "w-full px-4 py-3 bg-background border border-border rounded-xl text-text-primary focus:outline-none focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all duration-300 placeholder:text-text-secondary";
@@ -52,14 +63,12 @@ const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToRegister, onClose, onLo
                         Cadastre-se gratuitamente
                     </button>
                 </p>
-                 <p className="mt-1 text-center text-xs text-text-secondary">
-                    (Dica: use um email com @partner.com para entrar no painel de parceiro)
-                </p>
             </div>
             <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+                {error && <p className="text-red-500 text-sm text-center bg-red-100 p-3 rounded-xl">{error}</p>}
                 <div className="space-y-4">
-                    <input name="email" type="email" required placeholder="E-mail" className={inputClasses} value={formData.email} onChange={handleInputChange} />
-                    <input name="password" type="password" required placeholder="Senha" className={inputClasses} value={formData.password} onChange={handleInputChange} />
+                    <input name="email" type="email" required placeholder="E-mail" className={inputClasses} value={formData.email} onChange={handleInputChange} disabled={loading} />
+                    <input name="password" type="password" required placeholder="Senha" className={inputClasses} value={formData.password} onChange={handleInputChange} disabled={loading} />
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -78,8 +87,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToRegister, onClose, onLo
                 </div>
 
                 <div>
-                    <button type="submit" className="w-full flex justify-center py-3 px-4 border border-transparent text-lg font-bold rounded-xl text-white bg-primary hover:opacity-90 transition-opacity duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
-                        Entrar
+                    <button type="submit" className="w-full flex justify-center py-3 px-4 border border-transparent text-lg font-bold rounded-xl text-white bg-primary hover:opacity-90 transition-opacity duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50" disabled={loading}>
+                        {loading ? 'Entrando...' : 'Entrar'}
                     </button>
                 </div>
             </form>

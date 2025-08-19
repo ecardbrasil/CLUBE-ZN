@@ -1,34 +1,40 @@
 
 import React from 'react';
-import type { Partner } from '../types';
+import type { Profile } from '../types';
 import { SparklesIcon } from './icons/SparklesIcon';
 import { TicketIcon } from './icons/TicketIcon';
 
 interface PartnerCardProps {
-  partner: Partner;
+  partner: Profile;
   showActionButton?: boolean;
 }
 
 const PartnerCard: React.FC<PartnerCardProps> = ({ partner, showActionButton = false }) => {
   const handleActionClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    alert(`Gerando desconto para ${partner.name}... (Simulação)`);
+    alert(`Gerando desconto para ${partner.company_name}... (Simulação)`);
   };
+
+  const defaultImageUrl = 'https://picsum.photos/seed/placeholder/400/300';
 
   return (
     <div className="bg-surface rounded-2xl border border-border flex flex-col overflow-hidden transform hover:-translate-y-1.5 transition-all duration-300 ease-in-out group hover:shadow-xl hover:border-primary/20">
       <div className="relative">
-        <img className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105" src={partner.imageUrl} alt={partner.name} />
-        <div className="absolute top-0 right-0 bg-primary/10 text-primary text-xs font-semibold px-3 py-1 m-4 rounded-full">
-          {partner.category}
-        </div>
+        <img className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105" src={partner.logo_url || defaultImageUrl} alt={partner.company_name || 'Logo do parceiro'} />
+        {partner.category && (
+          <div className="absolute top-0 right-0 bg-primary/10 text-primary text-xs font-semibold px-3 py-1 m-4 rounded-full">
+            {partner.category}
+          </div>
+        )}
       </div>
       <div className="p-6 flex flex-col flex-grow">
-        <h3 className="text-xl font-bold text-text-primary mb-2">{partner.name}</h3>
-        <div className="flex items-center text-primary mb-4">
-          <SparklesIcon className="h-5 w-5 mr-2 flex-shrink-0" />
-          <p className="font-semibold text-md">{partner.benefit}</p>
-        </div>
+        <h3 className="text-xl font-bold text-text-primary mb-2">{partner.company_name}</h3>
+        {partner.benefit && (
+          <div className="flex items-center text-primary mb-4">
+            <SparklesIcon className="h-5 w-5 mr-2 flex-shrink-0" />
+            <p className="font-semibold text-md">{partner.benefit}</p>
+          </div>
+        )}
         {showActionButton && (
           <div className="mt-auto pt-4 border-t border-border">
             <button 

@@ -4,16 +4,21 @@ import PartnerProfileEditor from '../components/PartnerProfileEditor';
 import PartnerOffersManager from '../components/PartnerOffersManager';
 import { UserIcon } from '../components/icons/UserIcon';
 import { TagIcon } from '../components/icons/TagIcon';
+import type { AuthSession } from '@supabase/supabase-js';
 
-const PartnerDashboardPage: React.FC = () => {
+interface PartnerDashboardPageProps {
+    session: AuthSession;
+}
+
+const PartnerDashboardPage: React.FC<PartnerDashboardPageProps> = ({ session }) => {
     const [activeTab, setActiveTab] = useState<'offers' | 'profile'>('offers');
 
     const renderContent = () => {
         switch (activeTab) {
             case 'offers':
-                return <PartnerOffersManager />;
+                return <PartnerOffersManager session={session} />;
             case 'profile':
-                return <PartnerProfileEditor />;
+                return <PartnerProfileEditor session={session} />;
             default:
                 return null;
         }

@@ -1,38 +1,54 @@
 
 import React, { useState } from 'react';
 import { MapPinIcon } from '../components/icons/MapPinIcon';
+import { supabase } from '../lib/supabaseClient';
 
 interface RegisterPageProps {
   onSwitchToLogin: () => void;
   onClose: () => void;
+  onRegisterSuccess: () => void;
 }
 
-const RegisterPage: React.FC<RegisterPageProps> = ({ onSwitchToLogin, onClose }) => {
+const RegisterPage: React.FC<RegisterPageProps> = ({ onSwitchToLogin, onClose, onRegisterSuccess }) => {
     const [formData, setFormData] = useState({
-        name: '',
         email: '',
-        cpf: '',
-        birthDate: '',
-        phone: '',
         password: '',
         passwordConfirm: '',
-        terms: false,
     });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value, type, checked } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: type === 'checkbox' ? checked : value,
-        }));
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        // TODO: Add form validation and submission logic
-        console.log('Form data submitted:', formData);
-        alert('Cadastro realizado com sucesso! (Simulação)');
-        onClose(); // Fecha o modal após o sucesso
+        if (formData.password !== formData.passwordConfirm) {
+            setError('As senhas não conferem.');
+            return;
+        }
+        setLoading(true);
+        setError(null);
+
+        const { error } = await supabase.auth.signUp({
+            email: formData.email,
+            password: formData.password,
+            options: {
+                data: {
+                    user_type: 'customer',
+                }
+            }
+        });
+
+        setLoading(false);
+        if (error) {
+            setError(error.message);
+        } else {
+            alert('Cadastro realizado! Verifique seu e-mail para confirmar a conta.');
+            onRegisterSuccess();
+        }
     };
 
     const inputClasses = "w-full px-4 py-3 bg-background border border-border rounded-xl text-text-primary focus:outline-none focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all duration-300 placeholder:text-text-secondary";
@@ -57,32 +73,15 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onSwitchToLogin, onClose })
                 </p>
             </div>
             <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
+                {error && <p className="text-red-500 text-sm text-center bg-red-100 p-3 rounded-xl">{error}</p>}
                 <div className="space-y-4">
-                    <input name="name" type="text" required placeholder="Nome Completo" className={inputClasses} value={formData.name} onChange={handleInputChange} />
-                    <input name="email" type="email" required placeholder="E-mail" className={inputClasses} value={formData.email} onChange={handleInputChange} />
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input name="cpf" type="text" required placeholder="CPF" className={inputClasses} value={formData.cpf} onChange={handleInputChange} />
-                        <input name="birthDate" type="text" placeholder="Data de Nascimento" className={inputClasses} onFocus={(e) => e.target.type='date'} onBlur={(e) => {if(!e.target.value) e.target.type='text'}} value={formData.birthDate} onChange={handleInputChange} />
-                    </div>
-                    <input name="phone" type="tel" placeholder="Celular (com DDD)" className={inputClasses} value={formData.phone} onChange={handleInputChange} />
-                    <input name="password" type="password" required placeholder="Senha" className={inputClasses} value={formData.password} onChange={handleInputChange} />
-                    <input name="passwordConfirm" type="password" required placeholder="Confirme sua Senha" className={inputClasses} value={formData.passwordConfirm} onChange={handleInputChange} />
+                    <input name="email" type="email" required placeholder="E-mail" className={inputClasses} value={formData.email} onChange={handleInputChange} disabled={loading} />
+                    <input name="password" type="password" required placeholder="Senha" className={inputClasses} value={formData.password} onChange={handleInputChange} disabled={loading} />
+                    <input name="passwordConfirm" type="password" required placeholder="Confirme sua Senha" className={inputClasses} value={formData.passwordConfirm} onChange={handleInputChange} disabled={loading} />
                 </div>
-
-                <div className="flex items-start">
-                    <div className="flex items-center h-5">
-                        <input id="terms" name="terms" type="checkbox" required className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded" checked={formData.terms} onChange={handleInputChange} />
-                    </div>
-                    <div className="ml-3 text-sm">
-                        <label htmlFor="terms" className="text-text-secondary">
-                            Eu li e aceito os <a href="#" className="font-medium text-primary hover:text-primary/80">Termos de Uso e Privacidade</a>.
-                        </label>
-                    </div>
-                </div>
-
                 <div>
-                    <button type="submit" className="w-full flex justify-center py-3 px-4 border border-transparent text-lg font-bold rounded-xl text-white bg-primary hover:opacity-90 transition-opacity duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
-                        Criar minha conta
+                    <button type="submit" className="w-full flex justify-center py-3 px-4 border border-transparent text-lg font-bold rounded-xl text-white bg-primary hover:opacity-90 transition-opacity duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50" disabled={loading}>
+                        {loading ? 'Criando conta...' : 'Criar minha conta'}
                     </button>
                 </div>
             </form>

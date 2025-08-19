@@ -1,38 +1,55 @@
 
 import React, { useState } from 'react';
 import { MapPinIcon } from '../components/icons/MapPinIcon';
+import { supabase } from '../lib/supabaseClient';
 
 interface RegisterPartnerPageProps {
   onClose: () => void;
+  onRegisterSuccess: () => void;
 }
 
-const RegisterPartnerPage: React.FC<RegisterPartnerPageProps> = ({ onClose }) => {
+const RegisterPartnerPage: React.FC<RegisterPartnerPageProps> = ({ onClose, onRegisterSuccess }) => {
     const [formData, setFormData] = useState({
         companyName: '',
-        cnpj: '',
-        activity: '',
-        responsibleName: '',
         email: '',
-        phone: '',
         password: '',
         passwordConfirm: '',
-        terms: false,
     });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value, type, checked } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: type === 'checkbox' ? checked : value,
-        }));
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        // TODO: Add form validation and submission logic
-        console.log('Partner form data submitted:', formData);
-        alert('Cadastro de parceiro realizado com sucesso! (Simulação)');
-        onClose(); // Fecha o modal após o sucesso
+        if (formData.password !== formData.passwordConfirm) {
+            setError('As senhas não conferem.');
+            return;
+        }
+        setLoading(true);
+        setError(null);
+        
+        const { error } = await supabase.auth.signUp({
+            email: formData.email,
+            password: formData.password,
+            options: {
+                data: {
+                    user_type: 'partner',
+                    company_name: formData.companyName,
+                }
+            }
+        });
+
+        setLoading(false);
+        if (error) {
+            setError(error.message);
+        } else {
+            alert('Cadastro de parceiro realizado! Verifique seu e-mail para confirmar a conta.');
+            onRegisterSuccess();
+        }
     };
 
     const inputClasses = "w-full px-4 py-3 bg-background border border-border rounded-xl text-text-primary focus:outline-none focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all duration-300 placeholder:text-text-secondary";
@@ -54,38 +71,19 @@ const RegisterPartnerPage: React.FC<RegisterPartnerPageProps> = ({ onClose }) =>
                 </p>
             </div>
             <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
+                {error && <p className="text-red-500 text-sm text-center bg-red-100 p-3 rounded-xl">{error}</p>}
                 <div className="space-y-4">
-                    <input name="companyName" type="text" required placeholder="Nome Fantasia" className={inputClasses} value={formData.companyName} onChange={handleInputChange} />
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input name="cnpj" type="text" required placeholder="CNPJ" className={inputClasses} value={formData.cnpj} onChange={handleInputChange} />
-                        <input name="activity" type="text" placeholder="Ramo de Atividade" className={inputClasses} value={formData.activity} onChange={handleInputChange} />
-                    </div>
-                    <hr className="border-border" />
-                    <input name="responsibleName" type="text" required placeholder="Nome do Responsável" className={inputClasses} value={formData.responsibleName} onChange={handleInputChange} />
+                    <input name="companyName" type="text" required placeholder="Nome Fantasia" className={inputClasses} value={formData.companyName} onChange={handleInputChange} disabled={loading} />
+                    <input name="email" type="email" required placeholder="E-mail de Acesso" className={inputClasses} value={formData.email} onChange={handleInputChange} disabled={loading} />
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input name="email" type="email" required placeholder="E-mail de Contato" className={inputClasses} value={formData.email} onChange={handleInputChange} />
-                        <input name="phone" type="tel" placeholder="Celular (com DDD)" className={inputClasses} value={formData.phone} onChange={handleInputChange} />
-                    </div>
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input name="password" type="password" required placeholder="Crie uma senha" className={inputClasses} value={formData.password} onChange={handleInputChange} />
-                        <input name="passwordConfirm" type="password" required placeholder="Confirme a senha" className={inputClasses} value={formData.passwordConfirm} onChange={handleInputChange} />
-                    </div>
-                </div>
-
-                <div className="flex items-start">
-                    <div className="flex items-center h-5">
-                        <input id="partner-terms" name="terms" type="checkbox" required className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded" checked={formData.terms} onChange={handleInputChange} />
-                    </div>
-                    <div className="ml-3 text-sm">
-                        <label htmlFor="partner-terms" className="text-text-secondary">
-                            Eu li e aceito os <a href="#" className="font-medium text-primary hover:text-primary/80">Termos de Parceria</a>.
-                        </label>
+                        <input name="password" type="password" required placeholder="Crie uma senha" className={inputClasses} value={formData.password} onChange={handleInputChange} disabled={loading} />
+                        <input name="passwordConfirm" type="password" required placeholder="Confirme a senha" className={inputClasses} value={formData.passwordConfirm} onChange={handleInputChange} disabled={loading} />
                     </div>
                 </div>
 
                 <div>
-                    <button type="submit" className="w-full flex justify-center py-3 px-4 border border-transparent text-lg font-bold rounded-xl text-white bg-primary hover:opacity-90 transition-opacity duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
-                        Finalizar Cadastro
+                    <button type="submit" className="w-full flex justify-center py-3 px-4 border border-transparent text-lg font-bold rounded-xl text-white bg-primary hover:opacity-90 transition-opacity duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50" disabled={loading}>
+                        {loading ? 'Finalizando...' : 'Finalizar Cadastro'}
                     </button>
                 </div>
             </form>

@@ -12,15 +12,60 @@ import DashboardPage from './pages/DashboardPage';
 import Modal from './components/Modal';
 import RegisterPartnerPage from './pages/RegisterPartnerPage';
 import PartnerDashboardPage from './pages/PartnerDashboardPage';
+import { supabase } from './lib/supabaseClient';
+import type { AuthSession } from '@supabase/supabase-js';
+import type { Profile } from './types';
 
 function App(): React.ReactNode {
   const [modal, setModal] = useState<'none' | 'login' | 'register' | 'register-partner'>('none');
-  const [page, setPage] = useState<'home' | 'dashboard' | 'partner-dashboard'>('home');
+  const [session, setSession] = useState<AuthSession | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setSession(session);
+      setLoading(false);
+    };
+    getSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (session?.user) {
+      const fetchProfile = async () => {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+        
+        if (error) {
+          console.error('Error fetching profile:', error);
+        } else {
+          setProfile(data);
+        }
+      };
+      fetchProfile();
+    } else {
+      setProfile(null);
+    }
+  }, [session]);
+  
   // Lida com o hash da URL para abrir modais
   useEffect(() => {
     const handleHashChange = () => {
-      if (page !== 'home') return; // Só abre modal na home
+      // Only allow auth modals if not logged in
+      if (session) {
+        setModal('none');
+        return;
+      }
       const hash = window.location.hash;
       if (hash === '#/login') {
         setModal('login');
@@ -35,7 +80,7 @@ function App(): React.ReactNode {
     handleHashChange();
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, [page]);
+  }, [session]);
   
   const handleOpenLogin = useCallback(() => window.location.hash = '#/login', []);
   const handleOpenRegister = useCallback(() => window.location.hash = '#/cadastro-cliente', []);
@@ -48,40 +93,47 @@ function App(): React.ReactNode {
     }
   }, []);
 
-  const handleLoginSuccess = useCallback((userType: 'customer' | 'partner') => {
-    handleCloseModal();
-    setPage(userType === 'partner' ? 'partner-dashboard' : 'dashboard');
-    window.scrollTo(0, 0);
-  }, [handleCloseModal]);
-  
-  const handleLogout = useCallback(() => {
-    setPage('home');
+  const handleLogout = useCallback(async () => {
+    await supabase.auth.signOut();
     window.location.hash = '';
   }, []);
 
   const handleSwitchToRegister = useCallback(() => window.location.hash = '#/cadastro-cliente', []);
   const handleSwitchToLogin = useCallback(() => window.location.hash = '#/login', []);
+  
+  const renderPage = () => {
+    if (loading) {
+      return <div className="flex-grow flex items-center justify-center"><p>Carregando...</p></div>;
+    }
+
+    if (session && profile) {
+      if (profile.user_type === 'partner') {
+        return <PartnerDashboardPage session={session} />;
+      }
+      return <DashboardPage />;
+    }
+
+    return (
+      <>
+        <Hero />
+        <PartnersSection />
+        <AboutSection />
+        <CTASection />
+      </>
+    );
+  };
 
   return (
     <div className="bg-background text-text-primary min-h-screen font-sans antialiased flex flex-col">
       <Header 
-        isLoggedIn={page === 'dashboard' || page === 'partner-dashboard'}
+        isLoggedIn={!!session}
         onLoginClick={handleOpenLogin} 
         onRegisterClick={handleOpenRegister}
         onRegisterPartnerClick={handleOpenRegisterPartner}
         onLogoutClick={handleLogout}
       />
       <main className="flex-grow">
-        {page === 'home' && (
-          <>
-            <Hero />
-            <PartnersSection />
-            <AboutSection />
-            <CTASection />
-          </>
-        )}
-        {page === 'dashboard' && <DashboardPage />}
-        {page === 'partner-dashboard' && <PartnerDashboardPage />}
+        {renderPage()}
       </main>
       <Footer />
 
@@ -89,16 +141,23 @@ function App(): React.ReactNode {
         <LoginPage 
           onSwitchToRegister={handleSwitchToRegister} 
           onClose={handleCloseModal}
-          onLoginSuccess={handleLoginSuccess}
+          onLoginSuccess={handleCloseModal}
         />
       </Modal>
 
       <Modal isOpen={modal === 'register'} onClose={handleCloseModal}>
-        <RegisterPage onSwitchToLogin={handleSwitchToLogin} onClose={handleCloseModal} />
+        <RegisterPage 
+          onSwitchToLogin={handleSwitchToLogin} 
+          onClose={handleCloseModal}
+          onRegisterSuccess={handleCloseModal}
+        />
       </Modal>
 
       <Modal isOpen={modal === 'register-partner'} onClose={handleCloseModal}>
-        <RegisterPartnerPage onClose={handleCloseModal} />
+        <RegisterPartnerPage 
+          onClose={handleCloseModal}
+          onRegisterSuccess={handleCloseModal}
+        />
       </Modal>
     </div>
   );
