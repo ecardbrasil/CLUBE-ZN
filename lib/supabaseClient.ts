@@ -7,12 +7,12 @@ export type Database = {
         Row: {
           id: string; // uuid
           updated_at?: string;
-          company_name: string | null;
-          description: string | null;
-          logo_url: string | null;
-          category: string | null;
-          benefit: string | null;
-          user_type: 'customer' | 'partner' | null;
+          company_name: string;
+          description: string;
+          logo_url: string;
+          category: string;
+          benefit: string;
+          user_type: 'customer' | 'partner';
         };
         Insert: {
           id: string;
@@ -31,6 +31,7 @@ export type Database = {
           benefit?: string | null;
           user_type?: 'customer' | 'partner' | null;
         };
+        Relationships: [];
       };
       offers: {
         Row: {
@@ -38,10 +39,10 @@ export type Database = {
           user_id: string;
           created_at?: string;
           title: string;
-          description: string | null;
+          description: string;
           discount_type: 'percentage' | 'fixed' | 'custom';
           discount_value: number | null;
-          custom_discount_text: string | null;
+          custom_discount_text: string;
         };
         Insert: {
           user_id: string;
@@ -58,6 +59,15 @@ export type Database = {
           discount_value?: number | null;
           custom_discount_text?: string | null;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'offers_user_id_fkey',
+            columns: ['user_id'],
+            isOneToOne: false,
+            referencedRelation: 'profiles',
+            referencedColumns: ['id']
+          }
+        ];
       };
     };
     Views: {

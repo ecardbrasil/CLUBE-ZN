@@ -1,8 +1,12 @@
-
 import React from 'react';
-import PartnerListings from '../components/PartnerListings';
+import type { AuthSession } from '@supabase/supabase-js';
+import OfferListings from '../components/OfferListings';
 
-const DashboardPage: React.FC = () => {
+interface DashboardPageProps {
+  session: AuthSession;
+}
+
+const DashboardPage: React.FC<DashboardPageProps> = ({ session }) => {
   return (
     <div className="py-12 sm:py-16">
       <div className="container mx-auto px-6">
@@ -12,7 +16,7 @@ const DashboardPage: React.FC = () => {
             Olá! Explore os benefícios exclusivos que separamos para você.
           </p>
         </div>
-        <PartnerListings showActionButtons={true} stickyFilters={true} />
+        <OfferListings session={session} />
       </div>
     </div>
   );

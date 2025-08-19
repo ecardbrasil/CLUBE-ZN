@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import type { Profile } from '../lib/supabaseClient';
 import type { PartnerDashboardView } from '../pages/PartnerDashboardPage';
@@ -9,6 +8,7 @@ import { TagIcon } from './icons/TagIcon';
 import { UserIcon } from './icons/UserIcon';
 import { ChartBarIcon } from './icons/ChartBarIcon';
 import { QrCodeIcon } from './icons/QrCodeIcon';
+import { CheckBadgeIcon } from './icons/CheckBadgeIcon';
 import { LogoutIcon } from './icons/LogoutIcon';
 import { MenuIcon } from './icons/MenuIcon';
 import { XIcon } from './icons/XIcon';
@@ -27,8 +27,9 @@ const PartnerSidebar: React.FC<PartnerSidebarProps> = ({ activeView, setActiveVi
         { id: 'overview', label: 'Visão Geral', icon: DashboardIcon },
         { id: 'offers', label: 'Minhas Ofertas', icon: TagIcon },
         { id: 'profile', label: 'Meu Perfil', icon: UserIcon },
-        { id: 'analytics', label: 'Analytics', icon: ChartBarIcon },
+        { id: 'validator', label: 'Validar Cupom', icon: CheckBadgeIcon },
         { id: 'qrcode', label: 'QR Code', icon: QrCodeIcon },
+        { id: 'analytics', label: 'Analytics', icon: ChartBarIcon },
     ];
     
     const handleLogout = async () => {

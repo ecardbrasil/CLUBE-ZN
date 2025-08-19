@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import type { AuthSession } from '@supabase/supabase-js';
 import type { Profile } from '../lib/supabaseClient';
@@ -10,12 +9,13 @@ import PartnerSidebar from '../components/PartnerSidebar';
 import PartnerOverview from '../components/PartnerOverview';
 import PartnerAnalytics from '../components/PartnerAnalytics';
 import PartnerQrCode from '../components/PartnerQrCode';
+import CouponValidator from '../components/CouponValidator';
 
 interface PartnerDashboardPageProps {
     session: AuthSession;
 }
 
-export type PartnerDashboardView = 'overview' | 'offers' | 'profile' | 'analytics' | 'qrcode';
+export type PartnerDashboardView = 'overview' | 'offers' | 'profile' | 'analytics' | 'qrcode' | 'validator';
 
 const PartnerDashboardPage: React.FC<PartnerDashboardPageProps> = ({ session }) => {
     const [activeView, setActiveView] = useState<PartnerDashboardView>('overview');
@@ -61,6 +61,8 @@ const PartnerDashboardPage: React.FC<PartnerDashboardPageProps> = ({ session }) 
                 return <PartnerAnalytics />;
             case 'qrcode':
                 return <PartnerQrCode partnerId={session.user.id} />;
+            case 'validator':
+                return <CouponValidator />;
             default:
                 return <PartnerOverview profile={profile} />;
         }

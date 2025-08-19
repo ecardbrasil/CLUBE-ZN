@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -111,7 +110,7 @@ function App(): React.ReactNode {
       if (profile.user_type === 'partner') {
         return <PartnerDashboardPage session={session} />;
       }
-      return <DashboardPage />;
+      return <DashboardPage session={session} />;
     }
 
     return <HomePage />;
