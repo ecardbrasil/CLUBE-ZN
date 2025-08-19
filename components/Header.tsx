@@ -9,10 +9,11 @@ interface HeaderProps {
   isLoggedIn: boolean;
   onLoginClick: () => void;
   onRegisterClick: () => void;
+  onRegisterPartnerClick: () => void;
   onLogoutClick: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ isLoggedIn, onLoginClick, onRegisterClick, onLogoutClick }) => {
+const Header: React.FC<HeaderProps> = ({ isLoggedIn, onLoginClick, onRegisterClick, onRegisterPartnerClick, onLogoutClick }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navLinks = [
@@ -56,7 +57,7 @@ const Header: React.FC<HeaderProps> = ({ isLoggedIn, onLoginClick, onRegisterCli
                   {link.label}
                 </a>
               ))}
-              <a href="#cadastro" className="text-text-secondary hover:text-primary transition-colors duration-300 font-medium">
+              <a href="#/cadastro-parceiro" onClick={(e) => handleAuthClick(e, onRegisterPartnerClick)} className="text-text-secondary hover:text-primary transition-colors duration-300 font-medium">
                 Seja Parceiro
               </a>
               <div className="w-px h-6 bg-border mx-1"></div>
@@ -98,7 +99,7 @@ const Header: React.FC<HeaderProps> = ({ isLoggedIn, onLoginClick, onRegisterCli
                   {link.label}
                 </a>
               ))}
-              <a href="#cadastro" onClick={handleLinkClick} className="text-text-secondary hover:text-primary transition-colors duration-300 font-medium py-3 text-center">
+              <a href="#/cadastro-parceiro" onClick={(e) => handleAuthClick(e, onRegisterPartnerClick)} className="text-text-secondary hover:text-primary transition-colors duration-300 font-medium py-3 text-center">
                   Seja Parceiro
               </a>
               <div className="w-full pt-4 mt-2 border-t border-border space-y-3">

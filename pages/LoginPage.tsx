@@ -5,7 +5,7 @@ import { MapPinIcon } from '../components/icons/MapPinIcon';
 interface LoginPageProps {
   onSwitchToRegister: () => void;
   onClose: () => void;
-  onLoginSuccess: () => void;
+  onLoginSuccess: (userType: 'customer' | 'partner') => void;
 }
 
 const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToRegister, onClose, onLoginSuccess }) => {
@@ -24,10 +24,12 @@ const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToRegister, onClose, onLo
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        // TODO: Add real login logic
+        // Simulação: se o email contiver @partner.com, é um parceiro
+        const userType = formData.email.includes('@partner.com') ? 'partner' : 'customer';
+        
         console.log('Login data submitted:', formData);
         alert('Login realizado com sucesso! (Simulação)');
-        onLoginSuccess(); // Navega para o dashboard
+        onLoginSuccess(userType); // Navega para o dashboard correspondente
     };
 
     const inputClasses = "w-full px-4 py-3 bg-background border border-border rounded-xl text-text-primary focus:outline-none focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all duration-300 placeholder:text-text-secondary";
@@ -49,6 +51,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToRegister, onClose, onLo
                     <button onClick={onSwitchToRegister} className="font-medium text-primary hover:text-primary/80 focus:outline-none">
                         Cadastre-se gratuitamente
                     </button>
+                </p>
+                 <p className="mt-1 text-center text-xs text-text-secondary">
+                    (Dica: use um email com @partner.com para entrar no painel de parceiro)
                 </p>
             </div>
             <form className="mt-8 space-y-6" onSubmit={handleSubmit}>

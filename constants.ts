@@ -1,5 +1,5 @@
 
-import type { Partner } from './types';
+import type { Partner, Offer, PartnerProfile } from './types';
 
 export const PARTNERS: Partner[] = [
   {
@@ -43,5 +43,38 @@ export const PARTNERS: Partner[] = [
     category: 'Cultura & Lazer',
     benefit: '10% de desconto em livros',
     imageUrl: 'https://picsum.photos/seed/livraria/400/300',
+  },
+];
+
+export const MOCK_PARTNER_PROFILE: PartnerProfile = {
+  logoUrl: 'https://picsum.photos/seed/barbearia_logo/200/200',
+  companyName: 'Barbearia ZN Style',
+  description: 'A melhor barbearia da Zona Norte, especializada em cortes modernos e barba bem-feita. Ambiente climatizado e os melhores produtos do mercado.'
+};
+
+export const MOCK_OFFERS: Offer[] = [
+  {
+    id: 1,
+    title: 'Corte de Cabelo + Barba',
+    description: 'Pacote completo para dar um tapa no visual. Inclui lavagem e finalização.',
+    discountType: 'percentage',
+    discountValue: 20,
+    customDiscountText: '',
+  },
+  {
+    id: 2,
+    title: 'Hidratação Capilar',
+    description: 'Tratamento profundo para fortalecer e dar brilho aos fios.',
+    discountType: 'fixed',
+    discountValue: 15,
+    customDiscountText: '',
+  },
+  {
+    id: 3,
+    title: 'Dia do Noivo',
+    description: 'Pacote especial para o grande dia. Consulte os serviços inclusos.',
+    discountType: 'custom',
+    discountValue: null,
+    customDiscountText: 'Consulte condições especiais',
   },
 ];

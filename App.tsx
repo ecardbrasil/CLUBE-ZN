@@ -2,15 +2,20 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Header from './components/Header';
 import Footer from './components/Footer';
-import HomePage from './components/HomePage';
+import Hero from './components/Hero';
+import PartnersSection from './components/PartnersSection';
+import AboutSection from './components/AboutSection';
+import CTASection from './components/CTASection';
 import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import Modal from './components/Modal';
+import RegisterPartnerPage from './pages/RegisterPartnerPage';
+import PartnerDashboardPage from './pages/PartnerDashboardPage';
 
 function App(): React.ReactNode {
-  const [modal, setModal] = useState<'none' | 'login' | 'register'>('none');
-  const [page, setPage] = useState<'home' | 'dashboard'>('home');
+  const [modal, setModal] = useState<'none' | 'login' | 'register' | 'register-partner'>('none');
+  const [page, setPage] = useState<'home' | 'dashboard' | 'partner-dashboard'>('home');
 
   // Lida com o hash da URL para abrir modais
   useEffect(() => {
@@ -21,6 +26,8 @@ function App(): React.ReactNode {
         setModal('login');
       } else if (hash === '#/cadastro-cliente') {
         setModal('register');
+      } else if (hash === '#/cadastro-parceiro') {
+        setModal('register-partner');
       } else {
         setModal('none');
       }
@@ -32,6 +39,7 @@ function App(): React.ReactNode {
   
   const handleOpenLogin = useCallback(() => window.location.hash = '#/login', []);
   const handleOpenRegister = useCallback(() => window.location.hash = '#/cadastro-cliente', []);
+  const handleOpenRegisterPartner = useCallback(() => window.location.hash = '#/cadastro-parceiro', []);
   
   const handleCloseModal = useCallback(() => {
     setModal('none');
@@ -40,9 +48,9 @@ function App(): React.ReactNode {
     }
   }, []);
 
-  const handleLoginSuccess = useCallback(() => {
+  const handleLoginSuccess = useCallback((userType: 'customer' | 'partner') => {
     handleCloseModal();
-    setPage('dashboard');
+    setPage(userType === 'partner' ? 'partner-dashboard' : 'dashboard');
     window.scrollTo(0, 0);
   }, [handleCloseModal]);
   
@@ -57,14 +65,23 @@ function App(): React.ReactNode {
   return (
     <div className="bg-background text-text-primary min-h-screen font-sans antialiased flex flex-col">
       <Header 
-        isLoggedIn={page === 'dashboard'}
+        isLoggedIn={page === 'dashboard' || page === 'partner-dashboard'}
         onLoginClick={handleOpenLogin} 
         onRegisterClick={handleOpenRegister}
+        onRegisterPartnerClick={handleOpenRegisterPartner}
         onLogoutClick={handleLogout}
       />
       <main className="flex-grow">
-        {page === 'home' && <HomePage />}
+        {page === 'home' && (
+          <>
+            <Hero />
+            <PartnersSection />
+            <AboutSection />
+            <CTASection />
+          </>
+        )}
         {page === 'dashboard' && <DashboardPage />}
+        {page === 'partner-dashboard' && <PartnerDashboardPage />}
       </main>
       <Footer />
 
@@ -78,6 +95,10 @@ function App(): React.ReactNode {
 
       <Modal isOpen={modal === 'register'} onClose={handleCloseModal}>
         <RegisterPage onSwitchToLogin={handleSwitchToLogin} onClose={handleCloseModal} />
+      </Modal>
+
+      <Modal isOpen={modal === 'register-partner'} onClose={handleCloseModal}>
+        <RegisterPartnerPage onClose={handleCloseModal} />
       </Modal>
     </div>
   );
