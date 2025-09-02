@@ -1,17 +1,55 @@
 # CLUBE ZN - Instruções de Execução
 
-Este projeto agora inclui um frontend em React e um backend em Node.js/Express para o sistema de cupons. Siga os passos abaixo para executar a aplicação completa localmente.
+Este projeto utiliza o Supabase como backend. Para executá-lo corretamente, você precisará configurar suas próprias credenciais do Supabase tanto para o frontend quanto para o backend.
 
-## Pré-requisitos
+## ❗️ Ação Necessária: Configurar Credenciais Supabase
 
-- Node.js (versão 18 ou superior)
-- npm (geralmente instalado com o Node.js)
+A aplicação não funcionará sem as suas credenciais. Por favor, siga estes passos primeiro.
 
-## 1. Configuração do Backend
+1.  **Acesse seu projeto Supabase:** Vá para [app.supabase.com](https://app.supabase.com), selecione seu projeto e navegue até **Project Settings > API**.
+2.  **Copie suas credenciais:** Você precisará de dois valores:
+    *   **Project URL**
+    *   **Project API Keys > `anon` `public` key**
+
+### a. Configurar Frontend
+
+Abra o arquivo `lib/supabaseClient.ts` e substitua os placeholders com suas credenciais:
+
+```typescript
+// Em: lib/supabaseClient.ts
+
+// ...
+
+// TODO: Substitua pelos dados do seu projeto Supabase.
+const supabaseUrl = 'https://<SEU-ID-DE-PROJETO>.supabase.co'; // Cole sua Project URL aqui
+const supabaseKey = '<SUA-CHAVE-ANON>'; // Cole sua anon public key aqui
+
+// ...
+```
+
+### b. Configurar Backend
+
+Crie um arquivo chamado `.env` dentro da pasta `server/`. Copie o conteúdo abaixo e substitua os placeholders com as mesmas credenciais:
+
+```ini
+# Em: server/.env
+
+# Credenciais do seu projeto Supabase
+SUPABASE_URL=https://<SEU-ID-DE-PROJETO>.supabase.co
+SUPABASE_ANON_KEY=<SUA-CHAVE-ANON>
+```
+
+---
+
+## Executando a Aplicação
+
+Depois de configurar as credenciais, siga os passos abaixo.
+
+### 1. Iniciar o Backend
 
 O backend é responsável por gerar e validar os cupons.
 
-### a. Instalar Dependências
+#### a. Instalar Dependências
 
 Navegue até o diretório `server/` e instale as dependências:
 
@@ -20,19 +58,7 @@ cd server
 npm install
 ```
 
-### b. Configurar Variáveis de Ambiente
-
-No diretório `server/`, renomeie o arquivo `.env.example` para `.env` e preencha com as suas credenciais do Supabase. O backend precisa delas para buscar informações do usuário e da oferta ao validar um cupom.
-
-```ini
-# server/.env
-
-# Credenciais do seu projeto Supabase
-SUPABASE_URL=https://wcjqkjloofrjdyzamkxn.supabase.co
-SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndjanFramxvb2ZyamR5emFta3huIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU2MjI4NDksImV4cCI6MjA3MTE5ODg0OX0.poHKJOj1VlomnoyJ1GWCweoIhuXk3ZH6Di-awC-DDX0
-```
-
-### c. Iniciar o Servidor Backend
+#### b. Iniciar o Servidor
 
 Ainda no diretório `server/`, inicie o servidor:
 
@@ -40,18 +66,18 @@ Ainda no diretório `server/`, inicie o servidor:
 npm start
 ```
 
-O servidor será executado em `http://localhost:4000`. Na primeira vez que ele iniciar, um arquivo de banco de dados `clubzn.db` será criado automaticamente no mesmo diretório.
+O servidor será executado em `http://localhost:4000`.
 
-## 2. Execução do Frontend
+### 2. Executar o Frontend
 
 O frontend é a aplicação React que os usuários e parceiros interagem.
 
-**Importante:** O frontend já está configurado neste ambiente de desenvolvimento. Você não precisa instalar dependências ou iniciá-lo manualmente. As alterações feitas nos arquivos React serão refletidas automaticamente.
+**Importante:** Neste ambiente de desenvolvimento, o frontend é executado automaticamente. Após configurar o `lib/supabaseClient.ts` (passo **a.** da configuração), a aplicação já estará pronta para uso na URL fornecida.
 
 ## Como Usar a Aplicação
 
-1.  **Frontend:** Acesse a URL fornecida pelo ambiente de desenvolvimento.
-2.  **Backend:** Manter o terminal com o comando `npm start` (executado no passo 1c) aberto.
+1.  **Backend:** Mantenha o terminal com o servidor backend (`npm start`) em execução.
+2.  **Frontend:** Acesse a URL da aplicação fornecida por este ambiente.
 
 ### Testando o Fluxo
 
@@ -59,5 +85,5 @@ O frontend é a aplicação React que os usuários e parceiros interagem.
 2.  **Parceiro:** Faça login como parceiro, vá para "Minhas Ofertas" e crie pelo menos uma oferta.
 3.  **Cliente:** Faça login como cliente. No painel, você verá a oferta criada.
 4.  **Gerar Cupom:** Clique em "Gerar Desconto". Um modal aparecerá com um código de 6 dígitos e um contador de 10 minutos.
-5.  **Validar Cupom:** Copie o código. Faça logout do cliente e login como parceiro. Vá para a nova seção "Validar Cupom", insira o código e clique em "Validar".
+5.  **Validar Cupom:** Copie o código. Faça logout do cliente e login como parceiro. Vá para a seção "Validar Cupom", insira o código e clique em "Validar".
 6.  **Teste Offline:** Desative sua conexão com a internet. No painel do parceiro, tente validar um código. Ele será salvo para sincronização. Reative a internet e a sincronização ocorrerá automaticamente.

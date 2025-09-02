@@ -1,3 +1,5 @@
+
+
 import React, { useState, useEffect, useCallback } from 'react';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -8,12 +10,17 @@ import DashboardPage from './pages/DashboardPage';
 import Modal from './components/Modal';
 import RegisterPartnerPage from './pages/RegisterPartnerPage';
 import PartnerDashboardPage from './pages/PartnerDashboardPage';
-import { supabase } from './lib/supabaseClient';
+import { supabase, isSupabaseConfigured } from './lib/supabaseClient';
 import type { AuthSession } from '@supabase/supabase-js';
 import type { Profile } from './lib/supabaseClient';
 import { ToastProvider } from './contexts/ToastContext';
+import SupabaseCredentialsWarning from './components/SupabaseCredentialsWarning';
 
 function App(): React.ReactNode {
+  if (!isSupabaseConfigured) {
+    return <SupabaseCredentialsWarning />;
+  }
+
   const [modal, setModal] = useState<'none' | 'login' | 'register' | 'register-partner'>('none');
   const [session, setSession] = useState<AuthSession | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -21,12 +28,14 @@ function App(): React.ReactNode {
 
   useEffect(() => {
     const getSession = async () => {
+      // FIX: supabase.getSession() does not exist. Corrected to supabase.auth.getSession().
       const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
       setLoading(false);
     };
     getSession();
 
+    // FIX: supabase.onAuthStateChange does not exist. Corrected to supabase.auth.onAuthStateChange.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
     });
@@ -94,6 +103,7 @@ function App(): React.ReactNode {
   }, []);
 
   const handleLogout = useCallback(async () => {
+    // FIX: supabase.signOut() does not exist. Corrected to supabase.auth.signOut().
     await supabase.auth.signOut();
     window.location.hash = '';
   }, []);

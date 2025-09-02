@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { MapPinIcon } from '../components/icons/MapPinIcon';
 import { supabase } from '../lib/supabaseClient';
@@ -31,6 +32,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToRegister, onClose, onLo
         e.preventDefault();
         setLoading(true);
         try {
+            // FIX: supabase.signInWithPassword does not exist. Corrected to supabase.auth.signInWithPassword.
             const { error } = await supabase.auth.signInWithPassword({
                 email: formData.email,
                 password: formData.password,

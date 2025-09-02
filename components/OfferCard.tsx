@@ -5,7 +5,7 @@ import { TagIcon } from './icons/TagIcon';
 import { TicketIcon } from './icons/TicketIcon';
 import CouponDisplayModal from './CouponDisplayModal';
 
-type OfferWithProfile = Offer & { profiles: Profile | null };
+type OfferWithProfile = Offer & { profiles: Profile };
 
 interface OfferCardProps {
   offer: OfferWithProfile;
@@ -34,10 +34,6 @@ const OfferCard: React.FC<OfferCardProps> = ({ offer, session }) => {
   };
 
   const defaultImageUrl = 'https://picsum.photos/seed/placeholder/400/300';
-
-  if (!partner) {
-    return null; // Don't render card if partner profile is missing
-  }
 
   return (
     <>

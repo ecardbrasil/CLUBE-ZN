@@ -7,11 +7,11 @@ export type Database = {
         Row: {
           id: string; // uuid
           updated_at?: string;
-          company_name: string;
-          description: string;
-          logo_url: string;
-          category: string;
-          benefit: string;
+          company_name: string | null;
+          description: string | null;
+          logo_url: string | null;
+          category: string | null;
+          benefit: string | null;
           user_type: 'customer' | 'partner';
         };
         Insert: {
@@ -39,10 +39,10 @@ export type Database = {
           user_id: string;
           created_at?: string;
           title: string;
-          description: string;
+          description: string | null;
           discount_type: 'percentage' | 'fixed' | 'custom';
           discount_value: number | null;
-          custom_discount_text: string;
+          custom_discount_text: string | null;
         };
         Insert: {
           user_id: string;
@@ -83,11 +83,15 @@ export type Profile = Database['public']['Tables']['profiles']['Row'];
 export type Offer = Database['public']['Tables']['offers']['Row'];
 
 
-const supabaseUrl = 'https://wcjqkjloofrjdyzamkxn.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndjanFramxvb2ZyamR5emFta3huIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU2MjI4NDksImV4cCI6MjA3MTE5ODg0OX0.poHKJOj1VlomnoyJ1GWCweoIhuXk3ZH6Di-awC-DDX0';
+// TODO: Substitua pelos dados do seu projeto Supabase, encontrados em Configurações do Projeto > API.
+const supabaseUrl = 'https://<SEU-ID-DE-PROJETO>.supabase.co';
+const supabaseKey = '<SUA-CHAVE-ANON>';
 
-if (!supabaseUrl || !supabaseKey) {
-  throw new Error("Supabase URL and Key must be defined");
-}
+export const isSupabaseConfigured =
+  supabaseUrl &&
+  supabaseKey &&
+  !supabaseUrl.includes('<SEU-ID-DE-PROJETO>') &&
+  !supabaseKey.includes('<SUA-CHAVE-ANON>');
+
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseKey);

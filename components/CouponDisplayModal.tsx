@@ -3,7 +3,7 @@ import type { Offer, Profile } from '../lib/supabaseClient';
 import { useToast } from '../contexts/ToastContext';
 import Modal from './Modal';
 
-type OfferWithProfile = Offer & { profiles: Profile | null };
+type OfferWithProfile = Offer & { profiles: Profile };
 
 interface CouponDisplayModalProps {
     isOpen: boolean;
@@ -83,7 +83,7 @@ const CouponDisplayModal: React.FC<CouponDisplayModalProps> = ({ isOpen, onClose
             <div className="w-full max-w-md p-8 md:p-10 space-y-6 bg-surface rounded-3xl text-center">
                 <h2 className="text-2xl font-bold text-text-primary">Seu Cupom de Desconto</h2>
                 <p className="text-text-secondary">
-                    Apresente o código abaixo no estabelecimento <span className="font-bold">{offer.profiles?.company_name}</span> para resgatar sua oferta.
+                    Apresente o código abaixo no estabelecimento <span className="font-bold">{offer.profiles.company_name}</span> para resgatar sua oferta.
                 </p>
 
                 <div className="py-8">

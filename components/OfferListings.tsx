@@ -10,7 +10,7 @@ import { SearchIcon } from './icons/SearchIcon';
 import { MapPinIcon } from './icons/MapPinIcon';
 import { SortAscendingIcon } from './icons/SortAscendingIcon';
 
-type OfferWithProfile = Offer & { profiles: Profile | null };
+type OfferWithProfile = Offer & { profiles: Profile }; // Profile is guaranteed to exist with INNER JOIN
 
 interface OfferListingsProps {
     session: AuthSession;
@@ -28,15 +28,16 @@ const OfferListings: React.FC<OfferListingsProps> = ({ session }) => {
         const fetchOffers = async () => {
             setLoading(true);
             try {
+                // Use an INNER JOIN to ensure we only get offers with a valid, accessible partner profile.
+                // This is more efficient and robust than a LEFT JOIN followed by client-side filtering.
                 const { data, error } = await supabase
                     .from('offers')
-                    .select('*, profiles(*)');
+                    .select('*, profiles!inner(*)');
 
                 if (error) throw error;
                 
-                // Filtra ofertas onde o perfil do parceiro existe
-                const validOffers = data.filter(offer => offer.profiles);
-                setOffers(validOffers as OfferWithProfile[]);
+                // With an inner join, 'profiles' will never be null, so we can cast directly.
+                setOffers(data as OfferWithProfile[]);
             } catch (error: any) {
                 console.error('Error fetching offers:', error.message || error);
                 addToast('Erro ao carregar as ofertas.', 'error');
@@ -54,7 +55,7 @@ const OfferListings: React.FC<OfferListingsProps> = ({ session }) => {
 
     const processedOffers = useMemo(() => {
         let filtered = offers.filter(offer => {
-            if (!offer.profiles) return false;
+            // No need to check for offer.profiles, it's guaranteed by the query.
             const matchesCategory = selectedCategory === 'Todos' || offer.profiles.category === selectedCategory;
             const searchTermLower = searchTerm.toLowerCase();
             const matchesSearch =

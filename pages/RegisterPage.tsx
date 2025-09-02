@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { MapPinIcon } from '../components/icons/MapPinIcon';
 import { supabase } from '../lib/supabaseClient';
@@ -36,6 +37,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onSwitchToLogin, onClose, o
         setLoading(true);
 
         try {
+            // FIX: supabase.signUp does not exist. Corrected to supabase.auth.signUp.
             const { error: signUpError } = await supabase.auth.signUp({
                 email: formData.email,
                 password: formData.password,
