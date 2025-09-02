@@ -37,7 +37,6 @@ const RegisterPartnerPage: React.FC<RegisterPartnerPageProps> = ({ onClose, onRe
         setLoading(true);
         
         try {
-            // FIX: supabase.signUp does not exist. Corrected to supabase.auth.signUp.
             const { error: signUpError } = await supabase.auth.signUp({
                 email: formData.email,
                 password: formData.password,

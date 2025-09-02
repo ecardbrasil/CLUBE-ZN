@@ -35,7 +35,6 @@ const PartnerSidebar: React.FC<PartnerSidebarProps> = ({ activeView, setActiveVi
     ];
     
     const handleLogout = async () => {
-        // FIX: supabase.signOut() does not exist. Corrected to supabase.auth.signOut().
         await supabase.auth.signOut();
         window.location.hash = '';
     };

@@ -28,14 +28,12 @@ function App(): React.ReactNode {
 
   useEffect(() => {
     const getSession = async () => {
-      // FIX: supabase.getSession() does not exist. Corrected to supabase.auth.getSession().
       const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
       setLoading(false);
     };
     getSession();
 
-    // FIX: supabase.onAuthStateChange does not exist. Corrected to supabase.auth.onAuthStateChange.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
     });
@@ -103,7 +101,6 @@ function App(): React.ReactNode {
   }, []);
 
   const handleLogout = useCallback(async () => {
-    // FIX: supabase.signOut() does not exist. Corrected to supabase.auth.signOut().
     await supabase.auth.signOut();
     window.location.hash = '';
   }, []);
