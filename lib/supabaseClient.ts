@@ -69,6 +69,45 @@ export type Database = {
           }
         ];
       };
+      coupons: {
+        Row: {
+          id: number;
+          user_id: string;
+          offer_id: number;
+          code: string;
+          status: 'pending' | 'used' | 'expired';
+          expires_at: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          user_id: string;
+          offer_id: number;
+          code: string;
+          status?: 'pending' | 'used' | 'expired';
+          expires_at: string;
+          created_at?: string;
+        };
+        Update: {
+          status?: 'pending' | 'used' | 'expired';
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'coupons_offer_id_fkey',
+            columns: ['offer_id'],
+            isOneToOne: false,
+            referencedRelation: 'offers',
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'coupons_user_id_fkey',
+            columns: ['user_id'],
+            isOneToOne: false,
+            referencedRelation: 'profiles',
+            referencedColumns: ['id']
+          }
+        ];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -81,6 +120,7 @@ export type Database = {
 
 export type Profile = Database['public']['Tables']['profiles']['Row'];
 export type Offer = Database['public']['Tables']['offers']['Row'];
+export type Coupon = Database['public']['Tables']['coupons']['Row'];
 
 
 // TODO: Substitua pelos dados do seu projeto Supabase, encontrados em Configurações do Projeto > API.

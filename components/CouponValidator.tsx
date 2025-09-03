@@ -42,7 +42,7 @@ const CouponValidator: React.FC = () => {
         addToast(`Sincronizando ${pendingCodes.length} cupom(ns) validado(s) offline...`, 'success');
         
         try {
-            const response = await fetch('http://localhost:4000/api/sync-cupons', {
+            const response = await fetch('/api/sync-cupons', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ codes: pendingCodes }),
@@ -95,7 +95,7 @@ const CouponValidator: React.FC = () => {
 
         if (isOnline) {
             try {
-                const response = await fetch('http://localhost:4000/api/validar-cupom', {
+                const response = await fetch('/api/validar-cupom', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ code: code.toUpperCase() }),
@@ -107,7 +107,10 @@ const CouponValidator: React.FC = () => {
                 setResult({ status: 'success', message: data.message, data: data.validationData });
                 setCode('');
             } catch (error: any) {
-                setResult({ status: 'error', message: error.message || 'Ocorreu um erro.' });
+                const errorMessage = error.message.toLowerCase().includes('failed to fetch')
+                    ? 'Não foi possível conectar ao servidor. Verifique sua conexão.'
+                    : error.message || 'Ocorreu um erro.';
+                setResult({ status: 'error', message: errorMessage });
             } finally {
                 setLoading(false);
             }

@@ -57,7 +57,7 @@ const CouponDisplayModal: React.FC<CouponDisplayModalProps> = ({ isOpen, onClose
                 setError(null);
                 setCoupon(null);
                 try {
-                    const response = await fetch('http://localhost:4000/api/gerar-cupom', {
+                    const response = await fetch('/api/gerar-cupom', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ userId, offerId: offer.id }),
@@ -68,8 +68,11 @@ const CouponDisplayModal: React.FC<CouponDisplayModalProps> = ({ isOpen, onClose
                     }
                     setCoupon(data);
                 } catch (err: any) {
-                    setError(err.message);
-                    addToast(err.message, 'error');
+                    const errorMessage = err.message.toLowerCase().includes('failed to fetch')
+                        ? 'Não foi possível conectar ao servidor. Verifique sua conexão.'
+                        : err.message;
+                    setError(errorMessage);
+                    addToast(errorMessage, 'error');
                 } finally {
                     setLoading(false);
                 }
